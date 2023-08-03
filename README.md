@@ -4,3 +4,4 @@
 3. FACE_detection
 4. Pothole_YOLO_Detection
 5. Sentiment Analysis
+6. Hand_recognition
