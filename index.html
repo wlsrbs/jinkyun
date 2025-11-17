@@ -23,13 +23,19 @@
       background: #202123;
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease;
+      transition: width 0.3s ease, margin-left 0.3s ease;
+      flex-shrink: 0;
+      overflow: hidden;
     }
-    .sidebar.hidden { transform: translateX(-260px); }
+    .sidebar.hidden { 
+      width: 0;
+      margin-left: 0;
+    }
 
     .sidebar-header {
       padding: 12px;
       border-bottom: 1px solid #444654;
+      min-width: 260px;
     }
 
     .new-chat-btn {
@@ -52,6 +58,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 8px;
+      min-width: 260px;
     }
 
     .chat-item {
@@ -131,10 +138,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      transition: margin 0.3s ease;
     }
-
-    .sidebar.hidden ~ .main-content { margin-left: 0; }
 
     .chat-container {
       flex: 1;
@@ -142,16 +146,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
     }
 
     .chat-messages {
       width: 100%;
       max-width: 800px;
       padding: 20px;
-    }
-
-    .sidebar.hidden ~ .main-content .chat-messages {
-      max-width: 900px;
     }
 
     .message {
@@ -168,7 +169,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
+      width: 100%;
       text-align: center;
       padding: 20px;
     }
@@ -178,21 +179,61 @@
       margin-bottom: 20px;
     }
 
-    /* ───── 역재생 녹음기 버튼 ───── */
-    .recorder-btn {
-      display: inline-block;
+    /* ───── 기능 버튼 그리드 ───── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
       margin-top: 30px;
-      padding: 15px 30px;
-      background-color: #19c37d;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
+      width: 100%;
+      max-width: 900px;
+      padding: 0 20px;
+    }
+
+    .feature-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: #444654;
+      color: #ececf1;
+      font-size: 14px;
+      font-weight: 500;
       border-radius: 12px;
       text-decoration: none;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      min-height: 120px;
+      border: 1px solid transparent;
     }
-    .recorder-btn:hover { background-color: #1a9f6a; }
+
+    .feature-btn:hover {
+      background-color: #565869;
+      border-color: #19c37d;
+      transform: translateY(-2px);
+    }
+
+    .feature-btn.active {
+      background-color: #19c37d;
+      color: white;
+    }
+
+    .feature-btn.placeholder {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .feature-name {
+      text-align: center;
+      line-height: 1.4;
+    }
 
     /* ───── 입력 영역 ───── */
     .input-area {
@@ -307,9 +348,33 @@
       <div class="chat-container" id="chatContainer">
         <div class="welcome-screen" id="welcomeScreen">
           <h1>무엇을 도와드릴까요?</h1>
-          <a href="https://jindol-reverseai.hf.space/" target="_blank" class="recorder-btn">
-            역재생 녹음기
-          </a>
+          
+          <div class="features-grid">
+            <a href="https://jindol-reverseai.hf.space/" target="_blank" class="feature-btn active">
+              <div class="feature-icon">🎙️</div>
+              <div class="feature-name">역재생 녹음기</div>
+            </a>
+            
+            <div class="feature-btn placeholder">
+              <div class="feature-icon">📱</div>
+              <div class="feature-name">기능 2</div>
+            </div>
+            
+            <div class="feature-btn placeholder">
+              <div class="feature-icon">🎯</div>
+              <div class="feature-name">기능 3</div>
+            </div>
+            
+            <div class="feature-btn placeholder">
+              <div class="feature-icon">⚡</div>
+              <div class="feature-name">기능 4</div>
+            </div>
+            
+            <div class="feature-btn placeholder">
+              <div class="feature-icon">🚀</div>
+              <div class="feature-name">기능 5</div>
+            </div>
+          </div>
         </div>
         <div class="chat-messages" id="chatMessages" style="display: none;"></div>
       </div>
