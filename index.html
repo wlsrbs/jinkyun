@@ -350,15 +350,15 @@
           <h1>무엇을 도와드릴까요?</h1>
           
           <div class="features-grid">
-            <a href="https://jindol-reverseai.hf.space/" target="_blank" class="feature-btn active">
+            <a href="https://jindol-reverseai.hf.space" target="_blank" class="feature-btn">
               <div class="feature-icon">🎙️</div>
               <div class="feature-name">역재생 녹음기</div>
             </a>
             
-            <div class="feature-btn placeholder">
+            <a href="https://jindol-chatbot.hf.space/" target="_blank" class="feature-btn">
               <div class="feature-icon">📱</div>
-              <div class="feature-name">기능 2</div>
-            </div>
+              <div class="feature-name">챗봇 임시</div>
+            </a>
             
             <div class="feature-btn placeholder">
               <div class="feature-icon">🎯</div>
@@ -468,19 +468,16 @@
         saveData();
         input.value = ''; autoResize(input);
 
-        // 허깅페이스 Gradio API 호출
+        // 서버 POST 호출
         try {
-            const res = await fetch("https://jindol-chatbot.hf.space/api/predict", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    data: [msg]
-                })
+            const formData = new FormData();
+            formData.append("question", msg);
+            const res = await fetch("http://192.168.55.112:8899/chatbot", {
+            method: "POST",
+            body: formData
             });
             const data = await res.json();
-            chat.messages.push({ role: 'assistant', content: data.data[0] });
+            chat.messages.push({ role: 'assistant', content: data.intent.text });
             renderMessages(chat.messages);
             saveData();
         } catch (err) {
@@ -488,7 +485,7 @@
             chat.messages.push({ role: 'assistant', content: "서버 연결 실패..." });
             renderMessages(chat.messages);
         }
-    }
+        }
 
     function deleteChat(id) {
       if (confirm('이 채팅을 삭제하시겠습니까?')) {
