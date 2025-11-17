@@ -472,7 +472,7 @@
         try {
             const formData = new FormData();
             formData.append("question", msg);
-            const res = await fetch("https://jindol-chatbot.hf.space/", {
+            const res = await fetch("https://jindol-chatbot.hf.space", {
             method: "POST",
             body: formData
             });
