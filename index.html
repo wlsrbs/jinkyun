@@ -160,6 +160,7 @@
       margin-bottom: 20px;
       border-radius: 8px;
       background: #444654;
+      line-height: 1.6;
     }
 
     .message.user { background: #343541; }
@@ -280,6 +281,21 @@
     .send-btn:hover { background: #1a9f6a; }
     .send-btn:disabled { background: #565869; cursor: not-allowed; }
 
+    /* 로딩 표시 */
+    .loading {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ececf1;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-thumb { background: #565869; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #6e6f7f; }
@@ -350,7 +366,7 @@
           <h1>무엇을 도와드릴까요?</h1>
           
           <div class="features-grid">
-            <a href="https://jindol-reverseai.hf.space" target="_blank" class="feature-btn">
+            <a href="https://jindol-reverseai.hf.space" target="_blank" class="feature-btn active">
               <div class="feature-icon">🎙️</div>
               <div class="feature-name">역재생 녹음기</div>
             </a>
@@ -402,6 +418,10 @@
   </div>
 
   <script>
+    // ==================== 설정 ====================
+    // 여기에 당신의 Gradio Space URL을 입력하세요
+    const GRADIO_URL = "https://jindol-chatbot.hf.space";
+    
     let chats = [];
     let currentChatId = null;
     let renamingChatId = null;
@@ -456,36 +476,75 @@
         </div>`).join('');
     }
 
+    // ==================== Gradio API 연결 ====================
     async function sendMessage() {
         const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
         const msg = input.value.trim();
         if (!msg) return;
 
+        // 새 채팅 생성 또는 기존 채팅 사용
         if (!currentChatId || !chats.find(c => c.id === currentChatId)) createNewChat();
         const chat = chats.find(c => c.id === currentChatId);
+        
+        // 사용자 메시지 추가
         chat.messages.push({ role: 'user', content: msg });
         renderMessages(chat.messages);
         saveData();
-        input.value = ''; autoResize(input);
+        
+        input.value = ''; 
+        autoResize(input);
+        sendBtn.disabled = true;
 
-        // 서버 POST 호출
+        // 로딩 메시지 추가
+        chat.messages.push({ role: 'assistant', content: '<span class="loading"></span> 생각하는 중...' });
+        renderMessages(chat.messages);
+
         try {
-            const formData = new FormData();
-            formData.append("question", msg);
-            const res = await fetch("http://192.168.55.112:8899/chatbot", {
-            method: "POST",
-            body: formData
+            // Gradio API 호출
+            const res = await fetch(`${GRADIO_URL}/api/predict`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    data: [msg],  // 입력 파라미터
+                    fn_index: 0   // 첫 번째 함수
+                })
             });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP 오류: ${res.status}`);
+            }
+            
             const data = await res.json();
-            chat.messages.push({ role: 'assistant', content: data.intent.text });
+            
+            // 로딩 메시지 제거
+            chat.messages.pop();
+            
+            // 봇 응답 추가
+            const botResponse = data.data[0]; // Gradio 반환값
+            chat.messages.push({ role: 'assistant', content: botResponse });
             renderMessages(chat.messages);
             saveData();
+            
         } catch (err) {
-            console.error(err);
-            chat.messages.push({ role: 'assistant', content: "서버 연결 실패..." });
+            console.error("Gradio API 오류:", err);
+            
+            // 로딩 메시지 제거
+            chat.messages.pop();
+            
+            // 오류 메시지 추가
+            chat.messages.push({ 
+                role: 'assistant', 
+                content: `❌ 연결 실패: ${err.message}<br><br>다음을 확인해주세요:<br>1. Gradio Space가 실행 중인지<br>2. URL이 올바른지<br>3. 인터넷 연결 상태` 
+            });
             renderMessages(chat.messages);
+            saveData();
+        } finally {
+            sendBtn.disabled = false;
         }
-        }
+    }
 
     function deleteChat(id) {
       if (confirm('이 채팅을 삭제하시겠습니까?')) {
@@ -514,7 +573,10 @@
     function toggleSidebar(){document.getElementById('sidebar').classList.toggle('hidden');}
     function autoResize(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,200)+'px';}
     function handleKeyPress(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
-    loadData(); if(chats.length>0) switchToChat(chats[0].id);
+    
+    // 초기화
+    loadData(); 
+    if(chats.length>0) switchToChat(chats[0].id);
   </script>
 </body>
 </html>
